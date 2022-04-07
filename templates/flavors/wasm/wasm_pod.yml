@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: wasm-pod
+spec:
+  runtimeClassName: wasmtime
+  containers:
+    - name: testwasm
+      image: devigned/wasm:0.0.1
