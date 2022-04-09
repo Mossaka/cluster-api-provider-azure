@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wasm-dotnet
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wasm-dotnet
+  template:
+    metadata:
+      labels:
+        app: wasm-dotnet
+    spec:
+      runtimeClassName: wasmtime
+      containers:
+      - name: testwasm
+        image: mossaka/aspdotnet_wasm:latest

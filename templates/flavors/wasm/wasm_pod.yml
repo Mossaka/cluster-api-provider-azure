@@ -6,4 +6,4 @@ spec:
   runtimeClassName: wasmtime
   containers:
     - name: testwasm
-      image: devigned/wasm:0.0.1
+      image: mossaka/aspdotnet_wasm:latest
