@@ -1,18 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: wasm-dotnet
+  name: wasm-spin
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: wasm-dotnet
+      app: wasm-spin
   template:
     metadata:
       labels:
-        app: wasm-dotnet
+        app: wasm-spin
     spec:
       runtimeClassName: wasmtime
       containers:
       - name: testwasm
-        image: mossaka/aspdotnet_wasm:latest
+        image: ghcr.io/mossaka/spinkitchensink:latest
+        command: ["/"]

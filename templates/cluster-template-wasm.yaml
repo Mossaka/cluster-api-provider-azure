@@ -210,7 +210,7 @@ spec:
           name: '{{ ds.meta_data["local_hostname"] }}'
       preKubeadmCommands:
       - sed -i 's/\[plugins\]/[plugins]\\\n  [plugins.\\\""io.containerd.grpc.v1.cri\\\"".containerd.runtimes.wasm]\\\n  runtime_type
-        = \\\""io.containerd.aspdotnet.v1\\\""/' /etc/containerd/config.toml
+        = \\\""io.containerd.spin.v1\\\""/' /etc/containerd/config.toml
       - curl -o /tmp/containerd-shim-wasmserver-v1-${RUNWASI_VERSION:=v0.1.0}-linux-amd64.tar.gz
         -sLJO https://github.com/Mossaka/containerd-wasm-shims/releases/download/${RUNWASI_VERSION:=v0.1.0}/containerd-shim-wasmserver-v1-${RUNWASI_VERSION:=v0.1.0}-linux-amd64.tar.gz
       - sudo tar -xf /tmp/containerd-shim-wasmserver-v1-${RUNWASI_VERSION:=v0.1.0}-linux-amd64.tar.gz
