@@ -32,6 +32,7 @@ import (
 	"sigs.k8s.io/cluster-api-provider-azure/azure"
 	machinepool "sigs.k8s.io/cluster-api-provider-azure/azure/scope/strategies/machinepool_deployments"
 	"sigs.k8s.io/cluster-api-provider-azure/azure/services/roleassignments"
+	"sigs.k8s.io/cluster-api-provider-azure/azure/services/scalesets"
 	infrav1exp "sigs.k8s.io/cluster-api-provider-azure/exp/api/v1beta1"
 	"sigs.k8s.io/cluster-api-provider-azure/util/futures"
 	"sigs.k8s.io/cluster-api-provider-azure/util/tele"
@@ -551,8 +552,9 @@ func (m *MachinePoolScope) GetVMImage(ctx context.Context) (*infrav1.Image, erro
 	)
 	if m.AzureMachinePool.Spec.Template.OSDisk.OSType == azure.WindowsOS {
 		runtime := m.AzureMachinePool.Annotations["runtime"]
-		log.V(4).Info("No image specified for machine, using default Windows Image", "machine", m.MachinePool.GetName(), "runtime", runtime)
-		defaultImage, err = azure.GetDefaultWindowsImage(to.String(m.MachinePool.Spec.Template.Spec.Version), runtime)
+		windowsServerVersion := m.AzureMachinePool.Annotations["windowsServerVersion"]
+		log.V(4).Info("No image specified for machine, using default Windows Image", "machine", m.MachinePool.GetName(), "runtime", runtime, "windowsServerVersion", windowsServerVersion)
+		defaultImage, err = azure.GetDefaultWindowsImage(to.String(m.MachinePool.Spec.Template.Spec.Version), runtime, windowsServerVersion)
 	} else {
 		defaultImage, err = azure.GetDefaultUbuntuImage(to.String(m.MachinePool.Spec.Template.Spec.Version))
 	}
@@ -597,12 +599,15 @@ func (m *MachinePoolScope) HasSystemAssignedIdentity() bool {
 }
 
 // VMSSExtensionSpecs returns the vmss extension specs.
-func (m *MachinePoolScope) VMSSExtensionSpecs() []azure.ExtensionSpec {
-	var extensionSpecs = []azure.ExtensionSpec{}
-	extensionSpec := azure.GetBootstrappingVMExtension(m.AzureMachinePool.Spec.Template.OSDisk.OSType, m.CloudEnvironment(), m.Name())
+func (m *MachinePoolScope) VMSSExtensionSpecs() []azure.ResourceSpecGetter {
+	var extensionSpecs = []azure.ResourceSpecGetter{}
+	bootstrapExtensionSpec := azure.GetBootstrappingVMExtension(m.AzureMachinePool.Spec.Template.OSDisk.OSType, m.CloudEnvironment(), m.Name())
 
-	if extensionSpec != nil {
-		extensionSpecs = append(extensionSpecs, *extensionSpec)
+	if bootstrapExtensionSpec != nil {
+		extensionSpecs = append(extensionSpecs, &scalesets.VMSSExtensionSpec{
+			ExtensionSpec: *bootstrapExtensionSpec,
+			ResourceGroup: m.ResourceGroup(),
+		})
 	}
 
 	return extensionSpecs

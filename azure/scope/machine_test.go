@@ -18,9 +18,7 @@ package scope
 
 import (
 	"context"
-	"fmt"
 	"reflect"
-	"strings"
 	"testing"
 
 	autorestazure "github.com/Azure/go-autorest/autorest/azure"
@@ -36,19 +34,9 @@ import (
 	"sigs.k8s.io/cluster-api-provider-azure/azure/services/networkinterfaces"
 	"sigs.k8s.io/cluster-api-provider-azure/azure/services/resourceskus"
 	"sigs.k8s.io/cluster-api-provider-azure/azure/services/roleassignments"
+	"sigs.k8s.io/cluster-api-provider-azure/azure/services/vmextensions"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 )
-
-func specArrayToString(specs []azure.ResourceSpecGetter) string {
-	var sb strings.Builder
-	sb.WriteString("[ ")
-	for _, spec := range specs {
-		sb.WriteString(fmt.Sprintf("%+v ", spec))
-	}
-	sb.WriteString("]")
-
-	return sb.String()
-}
 
 func TestMachineScope_Name(t *testing.T) {
 	tests := []struct {
@@ -420,6 +408,9 @@ func TestMachineScope_RoleAssignmentSpecs(t *testing.T) {
 					AzureCluster: &infrav1.AzureCluster{
 						Spec: infrav1.AzureClusterSpec{
 							ResourceGroup: "my-rg",
+							AzureClusterClassSpec: infrav1.AzureClusterClassSpec{
+								Location: "westus",
+							},
 						},
 					},
 				},
@@ -450,7 +441,7 @@ func TestMachineScope_VMExtensionSpecs(t *testing.T) {
 	tests := []struct {
 		name         string
 		machineScope MachineScope
-		want         []azure.ExtensionSpec
+		want         []azure.ResourceSpecGetter
 	}{
 		{
 			name: "If OS type is Linux and cloud is AzurePublicCloud, it returns ExtensionSpec",
@@ -474,17 +465,29 @@ func TestMachineScope_VMExtensionSpecs(t *testing.T) {
 							},
 						},
 					},
+					AzureCluster: &infrav1.AzureCluster{
+						Spec: infrav1.AzureClusterSpec{
+							ResourceGroup: "my-rg",
+							AzureClusterClassSpec: infrav1.AzureClusterClassSpec{
+								Location: "westus",
+							},
+						},
+					},
 				},
 			},
-			want: []azure.ExtensionSpec{
-				{
-					Name:      "CAPZ.Linux.Bootstrapping",
-					VMName:    "machine-name",
-					Publisher: "Microsoft.Azure.ContainerUpstream",
-					Version:   "1.0",
-					ProtectedSettings: map[string]string{
-						"commandToExecute": azure.LinuxBootstrapExtensionCommand,
+			want: []azure.ResourceSpecGetter{
+				&vmextensions.VMExtensionSpec{
+					ExtensionSpec: azure.ExtensionSpec{
+						Name:      "CAPZ.Linux.Bootstrapping",
+						VMName:    "machine-name",
+						Publisher: "Microsoft.Azure.ContainerUpstream",
+						Version:   "1.0",
+						ProtectedSettings: map[string]string{
+							"commandToExecute": azure.LinuxBootstrapExtensionCommand,
+						},
 					},
+					ResourceGroup: "my-rg",
+					Location:      "westus",
 				},
 			},
 		},
@@ -510,9 +513,17 @@ func TestMachineScope_VMExtensionSpecs(t *testing.T) {
 							},
 						},
 					},
+					AzureCluster: &infrav1.AzureCluster{
+						Spec: infrav1.AzureClusterSpec{
+							ResourceGroup: "my-rg",
+							AzureClusterClassSpec: infrav1.AzureClusterClassSpec{
+								Location: "westus",
+							},
+						},
+					},
 				},
 			},
-			want: []azure.ExtensionSpec{},
+			want: []azure.ResourceSpecGetter{},
 		},
 		{
 			name: "If OS type is Windows and cloud is AzurePublicCloud, it returns ExtensionSpec",
@@ -536,17 +547,29 @@ func TestMachineScope_VMExtensionSpecs(t *testing.T) {
 							},
 						},
 					},
+					AzureCluster: &infrav1.AzureCluster{
+						Spec: infrav1.AzureClusterSpec{
+							ResourceGroup: "my-rg",
+							AzureClusterClassSpec: infrav1.AzureClusterClassSpec{
+								Location: "westus",
+							},
+						},
+					},
 				},
 			},
-			want: []azure.ExtensionSpec{
-				{
-					Name:      "CAPZ.Windows.Bootstrapping",
-					VMName:    "machine-name",
-					Publisher: "Microsoft.Azure.ContainerUpstream",
-					Version:   "1.0",
-					ProtectedSettings: map[string]string{
-						"commandToExecute": azure.WindowsBootstrapExtensionCommand,
+			want: []azure.ResourceSpecGetter{
+				&vmextensions.VMExtensionSpec{
+					ExtensionSpec: azure.ExtensionSpec{
+						Name:      "CAPZ.Windows.Bootstrapping",
+						VMName:    "machine-name",
+						Publisher: "Microsoft.Azure.ContainerUpstream",
+						Version:   "1.0",
+						ProtectedSettings: map[string]string{
+							"commandToExecute": azure.WindowsBootstrapExtensionCommand,
+						},
 					},
+					ResourceGroup: "my-rg",
+					Location:      "westus",
 				},
 			},
 		},
@@ -572,9 +595,17 @@ func TestMachineScope_VMExtensionSpecs(t *testing.T) {
 							},
 						},
 					},
+					AzureCluster: &infrav1.AzureCluster{
+						Spec: infrav1.AzureClusterSpec{
+							ResourceGroup: "my-rg",
+							AzureClusterClassSpec: infrav1.AzureClusterClassSpec{
+								Location: "westus",
+							},
+						},
+					},
 				},
 			},
-			want: []azure.ExtensionSpec{},
+			want: []azure.ResourceSpecGetter{},
 		},
 		{
 			name: "If OS type is not Linux or Windows and cloud is AzurePublicCloud, it returns empty",
@@ -598,9 +629,17 @@ func TestMachineScope_VMExtensionSpecs(t *testing.T) {
 							},
 						},
 					},
+					AzureCluster: &infrav1.AzureCluster{
+						Spec: infrav1.AzureClusterSpec{
+							ResourceGroup: "my-rg",
+							AzureClusterClassSpec: infrav1.AzureClusterClassSpec{
+								Location: "westus",
+							},
+						},
+					},
 				},
 			},
-			want: []azure.ExtensionSpec{},
+			want: []azure.ResourceSpecGetter{},
 		},
 		{
 			name: "If OS type is not Windows or Linux and cloud is not AzurePublicCloud, it returns empty",
@@ -624,15 +663,23 @@ func TestMachineScope_VMExtensionSpecs(t *testing.T) {
 							},
 						},
 					},
+					AzureCluster: &infrav1.AzureCluster{
+						Spec: infrav1.AzureClusterSpec{
+							ResourceGroup: "my-rg",
+							AzureClusterClassSpec: infrav1.AzureClusterClassSpec{
+								Location: "westus",
+							},
+						},
+					},
 				},
 			},
-			want: []azure.ExtensionSpec{},
+			want: []azure.ResourceSpecGetter{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.machineScope.VMExtensionSpecs(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("VMExtensionSpecs() = %v, want %v", got, tt.want)
+				t.Errorf("VMExtensionSpecs() = \n%s, want \n%s", specArrayToString(got), specArrayToString(tt.want))
 			}
 		})
 	}
@@ -1189,7 +1236,7 @@ func TestMachineScope_GetVMImage(t *testing.T) {
 				},
 			},
 			want: func() *infrav1.Image {
-				image, _ := azure.GetDefaultWindowsImage("1.20.1", "dockershim")
+				image, _ := azure.GetDefaultWindowsImage("1.20.1", "dockershim", "")
 				return image
 			}(),
 			wantErr: false,
@@ -1217,7 +1264,7 @@ func TestMachineScope_GetVMImage(t *testing.T) {
 				},
 			},
 			want: func() *infrav1.Image {
-				image, _ := azure.GetDefaultWindowsImage("1.22.1", "containerd")
+				image, _ := azure.GetDefaultWindowsImage("1.22.1", "containerd", "")
 				return image
 			}(),
 			wantErr: false,
@@ -1248,7 +1295,7 @@ func TestMachineScope_GetVMImage(t *testing.T) {
 				},
 			},
 			want: func() *infrav1.Image {
-				image, _ := azure.GetDefaultWindowsImage("1.22.1", "dockershim")
+				image, _ := azure.GetDefaultWindowsImage("1.22.1", "dockershim", "")
 				return image
 			}(),
 			wantErr: false,
@@ -1279,7 +1326,7 @@ func TestMachineScope_GetVMImage(t *testing.T) {
 				},
 			},
 			want: func() *infrav1.Image {
-				image, _ := azure.GetDefaultWindowsImage("1.21.1", "dockershim")
+				image, _ := azure.GetDefaultWindowsImage("1.21.1", "dockershim", "")
 				return image
 			}(),
 			wantErr: false,
@@ -1311,6 +1358,68 @@ func TestMachineScope_GetVMImage(t *testing.T) {
 			},
 			want:    nil,
 			wantErr: true,
+		},
+		{
+			name: "if no image is specified and os specified is windows with windowsServerVersion annotation set to 2019, retrurns 2019 image",
+			machineScope: MachineScope{
+				Machine: &clusterv1.Machine{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "machine-name",
+					},
+					Spec: clusterv1.MachineSpec{
+						Version: pointer.String("1.23.3"),
+					},
+				},
+				AzureMachine: &infrav1.AzureMachine{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "machine-name",
+						Annotations: map[string]string{
+							"windowsServerVersion": "windows-2019",
+						},
+					},
+					Spec: infrav1.AzureMachineSpec{
+						OSDisk: infrav1.OSDisk{
+							OSType: azure.WindowsOS,
+						},
+					},
+				},
+			},
+			want: func() *infrav1.Image {
+				image, _ := azure.GetDefaultWindowsImage("1.23.3", "", "windows-2019")
+				return image
+			}(),
+			wantErr: false,
+		},
+		{
+			name: "if no image is specified and os specified is windows with windowsServerVersion annotation set to 2022, retrurns 2022 image",
+			machineScope: MachineScope{
+				Machine: &clusterv1.Machine{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "machine-name",
+					},
+					Spec: clusterv1.MachineSpec{
+						Version: pointer.String("1.23.3"),
+					},
+				},
+				AzureMachine: &infrav1.AzureMachine{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "machine-name",
+						Annotations: map[string]string{
+							"windowsServerVersion": "windows-2022",
+						},
+					},
+					Spec: infrav1.AzureMachineSpec{
+						OSDisk: infrav1.OSDisk{
+							OSType: azure.WindowsOS,
+						},
+					},
+				},
+			},
+			want: func() *infrav1.Image {
+				image, _ := azure.GetDefaultWindowsImage("1.23.3", "", "windows-2022")
+				return image
+			}(),
+			wantErr: false,
 		},
 		{
 			name: "if no image and OS is specified, returns linux image",

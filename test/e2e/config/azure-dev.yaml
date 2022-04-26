@@ -187,7 +187,7 @@ variables:
   ETCD_VERSION_UPGRADE_TO: "3.5.1-0"
   COREDNS_VERSION_UPGRADE_TO: "v1.8.6"
   KUBERNETES_VERSION_UPGRADE_TO: "${KUBERNETES_VERSION_UPGRADE_TO:-stable-1.23}"
-  KUBERNETES_VERSION_UPGRADE_FROM: "${KUBERNETES_VERSION_UPGRADE_FROM:-stable-1.22}"
+  KUBERNETES_VERSION_UPGRADE_FROM: "${KUBERNETES_VERSION:-stable-1.22}"
   CNI: "${PWD}/templates/addons/calico.yaml"
   REDACT_LOG_SCRIPT: "${PWD}/hack/log/redact.sh"
   EXP_AKS: "true"
@@ -215,6 +215,7 @@ variables:
 intervals:
   default/wait-controllers: ["3m", "10s"]
   default/wait-cluster: ["20m", "10s"]
+  default/wait-private-cluster: ["30m", "10s"]
   default/wait-control-plane: ["20m", "10s"]
   default/wait-worker-nodes: ["20m", "10s"]
   default/wait-delete-cluster: ["30m", "10s"]
