@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: wasm-spin
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: wasm-spin
@@ -15,5 +15,5 @@ spec:
       runtimeClassName: wasmtime
       containers:
       - name: testwasm
-        image: ghcr.io/mossaka/spinkitchensink:latest
+        image: docker.io/mossaka/spindemo:0.2
         command: ["/"]
